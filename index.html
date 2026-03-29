@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard for IoT Smart Lighting with ESP32.">
+    <title>Smart Lighting Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fa-solid fa-lightbulb"></i>
+                <span>SmartLight</span>
+            </div>
+            <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                <i class="fa-solid fa-sun"></i>
+            </button>
+        </nav>
+
+        <header class="hero-section">
+            <div class="hero-content">
+                <h1>Smart Motion-Based Lighting System</h1>
+                <p>Live zones from your ESP32 (HTTP) or local USB serial. Zones: 1 = Home, 2 = Kitchen, 3 = Hall.</p>
+            </div>
+            <div class="hero-illustration">
+                <div class="glow-orb"></div>
+                <i class="fa-solid fa-house-signal"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2>Zone status</h2>
+                    <span class="live-indicator"><span class="dot pulse"></span> Live</span>
+                </div>
+
+                <div class="grid-container" id="room-grid">
+                    <div class="room-card" id="room-home">
+                        <div class="card-header">
+                            <div class="room-icon"><i class="fa-solid fa-house"></i></div>
+                            <h3>1 — Home</h3>
+                        </div>
+                        <div class="bulb-wrapper off">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <div class="glow-effect"></div>
+                        </div>
+                        <div class="status-container">
+                            <div class="status-item motion-status">
+                                <span class="label">Active:</span>
+                                <span class="value" data-status="not-detected">No</span>
+                            </div>
+                            <div class="status-item light-status">
+                                <span class="label">Light:</span>
+                                <div class="indicator off" data-light="off"></div>
+                                <span class="status-text">OFF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-card" id="room-kitchen">
+                        <div class="card-header">
+                            <div class="room-icon"><i class="fa-solid fa-utensils"></i></div>
+                            <h3>2 — Kitchen</h3>
+                        </div>
+                        <div class="bulb-wrapper off">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <div class="glow-effect"></div>
+                        </div>
+                        <div class="status-container">
+                            <div class="status-item motion-status">
+                                <span class="label">Active:</span>
+                                <span class="value" data-status="not-detected">No</span>
+                            </div>
+                            <div class="status-item light-status">
+                                <span class="label">Light:</span>
+                                <div class="indicator off" data-light="off"></div>
+                                <span class="status-text">OFF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-card" id="room-hall">
+                        <div class="card-header">
+                            <div class="room-icon"><i class="fa-solid fa-door-open"></i></div>
+                            <h3>3 — Hall</h3>
+                        </div>
+                        <div class="bulb-wrapper off">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <div class="glow-effect"></div>
+                        </div>
+                        <div class="status-container">
+                            <div class="status-item motion-status">
+                                <span class="label">Active:</span>
+                                <span class="value" data-status="not-detected">No</span>
+                            </div>
+                            <div class="status-item light-status">
+                                <span class="label">Light:</span>
+                                <div class="indicator off" data-light="off"></div>
+                                <span class="status-text">OFF</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="bottom-grid">
+                <section class="details-section panel">
+                    <h2>Project components</h2>
+                    <ul class="component-list">
+                        <li>
+                            <i class="fa-solid fa-microchip icon-accent"></i>
+                            <div>
+                                <strong>ESP32</strong>
+                                <p>Wi‑Fi, HTTP client to your Render app, and local web server for zone commands.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-server icon-accent"></i>
+                            <div>
+                                <strong>Flask on Render</strong>
+                                <p>Serves the dashboard and accepts <code>/update?state=...</code> from the ESP32.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-regular fa-lightbulb icon-accent"></i>
+                            <div>
+                                <strong>LED matrix</strong>
+                                <p>Visual feedback on the device; dashboard mirrors zones 1–3.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="admin-section panel">
+                    <h2>Admin console</h2>
+                    <div class="admin-controls">
+                        <h3>ESP32 → server</h3>
+                        <div class="sensor-controls esp32-status-grid">
+                            <div class="sensor-status">
+                                <span class="label">Last push:</span>
+                                <span id="esp32-last-seen" class="status-pill off">—</span>
+                            </div>
+                            <div class="sensor-status">
+                                <span class="label">Raw <code>state</code>:</span>
+                                <span id="esp32-raw-state" class="status-pill">—</span>
+                            </div>
+                            <div class="sensor-status">
+                                <span class="label">Source:</span>
+                                <span id="data-source" class="status-pill">—</span>
+                            </div>
+                            <div class="sensor-status">
+                                <span class="label">Zones ON:</span>
+                                <span id="lights-on-count" class="status-pill">0 / 3</span>
+                            </div>
+                        </div>
+                        <p class="hint-text">ESP32 should call <strong>HTTPS</strong> on Render, e.g. <code>GET /update?state=1,2</code> (use <code>state=0</code> for all off).</p>
+
+                        <h3 style="margin-top: 1.25rem;">USB serial (local only)</h3>
+                        <div class="sensor-controls">
+                            <button id="sensor-toggle" class="override-btn" aria-pressed="false">Connect USB</button>
+                            <input id="sensor-port" class="sensor-port" type="text" placeholder="COM3 (optional)" />
+                            <div class="sensor-status">
+                                <span class="label">Serial:</span>
+                                <span id="sensor-status-text" class="status-pill off">DISCONNECTED</span>
+                            </div>
+                        </div>
+                        <h3 style="margin-top: 1.25rem;">Manual override</h3>
+                        <div class="override-grid">
+                            <button class="override-btn" data-target="home">Toggle Home (1)</button>
+                            <button class="override-btn" data-target="kitchen">Toggle Kitchen (2)</button>
+                            <button class="override-btn" data-target="hall">Toggle Hall (3)</button>
+                        </div>
+                    </div>
+                    <div class="log-container">
+                        <h3>System logs</h3>
+                        <div class="log-list" id="activity-logs"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Smart Motion-Based Lighting Project. Developed as an IoT Demonstration.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
