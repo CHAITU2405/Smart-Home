@@ -13,9 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const themeBtn = document.getElementById('theme-toggle');
     const logList = document.querySelector('.log-list');
-    const sensorToggleBtn = document.getElementById('sensor-toggle');
-    const sensorPortInput = document.getElementById('sensor-port');
-    const sensorStatusText = document.getElementById('sensor-status-text');
     const lightsOnCountEl = document.getElementById('lights-on-count');
     const esp32LastSeenEl = document.getElementById('esp32-last-seen');
     const esp32RawStateEl = document.getElementById('esp32-raw-state');
@@ -23,11 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lastLightsOn = null;
     let lastLightsPattern = null;
-    let lastConnected = null;
     let lastAlertUtc = null;
     let lastEsp32Seen = null;
     let lastHttpState = null;
-    let lastSource = null;
 
     function formatTime(iso) {
         if (!iso) return '—';
@@ -110,23 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function setConnectedUI(isConnected) {
-        if (!sensorStatusText || !sensorToggleBtn) return;
-        if (isConnected) {
-            sensorStatusText.textContent = 'CONNECTED';
-            sensorStatusText.classList.remove('off');
-            sensorStatusText.classList.add('on');
-            sensorToggleBtn.textContent = 'Disconnect USB';
-            sensorToggleBtn.setAttribute('aria-pressed', 'true');
-        } else {
-            sensorStatusText.textContent = 'DISCONNECTED';
-            sensorStatusText.classList.remove('on');
-            sensorStatusText.classList.add('off');
-            sensorToggleBtn.textContent = 'Connect USB';
-            sensorToggleBtn.setAttribute('aria-pressed', 'false');
-        }
-    }
-
     function applyLightsPattern(pattern) {
         let onCount = 0;
         ZONES.forEach((roomId, idx) => {
@@ -153,12 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!data || !data.ok) return;
             const st = data.state;
 
-            if (typeof st.connected === 'boolean' && st.connected !== lastConnected) {
-                lastConnected = st.connected;
-                setConnectedUI(st.connected);
-                addLog('System', st.connected ? `USB serial (${st.port || 'port'})` : 'USB serial disconnected', 'system');
-            }
-
             if (st.esp32_last_seen_utc !== lastEsp32Seen) {
                 lastEsp32Seen = st.esp32_last_seen_utc;
                 if (esp32LastSeenEl) {
@@ -178,12 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (esp32RawStateEl) esp32RawStateEl.textContent = st.last_http_state != null ? String(st.last_http_state) : '—';
             }
 
-            if (st.last_source !== lastSource) {
-                lastSource = st.last_source;
-                if (dataSourceEl) {
-                    const label = st.last_source === 'http' ? 'ESP32 (HTTP)' : st.last_source === 'serial' ? 'USB serial' : '—';
-                    dataSourceEl.textContent = label;
-                }
+            if (dataSourceEl) {
+                dataSourceEl.textContent = st.last_source === 'http' ? 'ESP32 (HTTP)' : 'Waiting for ESP32…';
             }
 
             if (Array.isArray(st.lights) && st.lights.length >= ZONE_COUNT) {
@@ -215,28 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (sensorToggleBtn) {
-        sensorToggleBtn.addEventListener('click', async () => {
-            try {
-                const isPressed = sensorToggleBtn.getAttribute('aria-pressed') === 'true';
-                if (!isPressed) {
-                    const port = ((sensorPortInput && sensorPortInput.value) || '').trim();
-                    const payload = port ? { port } : {};
-                    const res = await api('/api/connect', { method: 'POST', body: JSON.stringify(payload) });
-                    addLog('System', res.ok ? (res.message || 'Connected') : (res.message || 'Connect failed'), res.ok ? 'system' : 'off');
-                } else {
-                    const res = await api('/api/disconnect', { method: 'POST' });
-                    addLog('System', res.ok ? (res.message || 'Disconnected') : (res.message || 'Disconnect failed'), res.ok ? 'system' : 'off');
-                }
-                await refreshState();
-            } catch (e) {
-                addLog('System', 'USB toggle failed', 'off');
-            }
-        });
-    }
-
-    addLog('System', 'Dashboard initialized', 'system');
-    setConnectedUI(false);
+    addLog('System', 'Dashboard initialized (HTTP only)', 'system');
     applyLightsPattern([false, false, false]);
     refreshState();
     setInterval(refreshState, POLL_MS);

@@ -2,8 +2,8 @@
 
 ## What it does
 - Web dashboard shows **3 zones**: **1 = Home**, **2 = Kitchen**, **3 = Hall**
-- ESP32 sends updates with HTTP GET: **`/update?state=...`**
-- Optional **USB serial** for local development (same zone IDs)
+- ESP32 sends updates with HTTP GET only: **`/update?state=...`**
+- Dashboard reads **`/api/state`** (polling)
 
 ## Local run
 ```bash
@@ -11,6 +11,11 @@ pip install -r requirements.txt
 python app.py
 ```
 Open `http://127.0.0.1:5000` (or the port in the `PORT` environment variable).
+
+**Production-style run (Gunicorn):**
+```bash
+gunicorn app:app --bind 127.0.0.1:8000
+```
 
 ## Deploy on Render
 1. Create a **Web Service**, connect this repo.
@@ -45,8 +50,6 @@ If `HTTPClient` fails on HTTPS, enable the appropriate **root CA** for Render or
 | GET | `/update?state=1,2` | ESP32 pushes zone state |
 | GET | `/api/state` | JSON for the dashboard (polling) |
 
-## USB serial format (local)
-- `None` — all off  
-- `1`, `2`, `3` — single zone on  
-- `1 2` — multiple zones  
-- `lights=2` — first two zones on (count mode)
+## Dependencies
+- **Flask** — web app  
+- **Gunicorn** — production WSGI server (Render / `Procfile`)

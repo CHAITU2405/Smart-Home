@@ -24,7 +24,7 @@
         <header class="hero-section">
             <div class="hero-content">
                 <h1>Smart Motion-Based Lighting System</h1>
-                <p>Live zones from your ESP32 (HTTP) or local USB serial. Zones: 1 = Home, 2 = Kitchen, 3 = Hall.</p>
+                <p>Live zones from your ESP32 over HTTP only. Zones: 1 = Home, 2 = Kitchen, 3 = Hall.</p>
             </div>
             <div class="hero-illustration">
                 <div class="glow-orb"></div>
@@ -151,7 +151,7 @@
                             </div>
                             <div class="sensor-status">
                                 <span class="label">Source:</span>
-                                <span id="data-source" class="status-pill">—</span>
+                                <span id="data-source" class="status-pill">ESP32 (HTTP)</span>
                             </div>
                             <div class="sensor-status">
                                 <span class="label">Zones ON:</span>
@@ -160,15 +160,6 @@
                         </div>
                         <p class="hint-text">ESP32 should call <strong>HTTPS</strong> on Render, e.g. <code>GET /update?state=1,2</code> (use <code>state=0</code> for all off).</p>
 
-                        <h3 style="margin-top: 1.25rem;">USB serial (local only)</h3>
-                        <div class="sensor-controls">
-                            <button id="sensor-toggle" class="override-btn" aria-pressed="false">Connect USB</button>
-                            <input id="sensor-port" class="sensor-port" type="text" placeholder="COM3 (optional)" />
-                            <div class="sensor-status">
-                                <span class="label">Serial:</span>
-                                <span id="sensor-status-text" class="status-pill off">DISCONNECTED</span>
-                            </div>
-                        </div>
                         <h3 style="margin-top: 1.25rem;">Manual override</h3>
                         <div class="override-grid">
                             <button class="override-btn" data-target="home">Toggle Home (1)</button>
